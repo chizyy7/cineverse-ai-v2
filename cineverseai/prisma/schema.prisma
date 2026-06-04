@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models for CineVerse AI
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  name          String?
+  avatarUrl     String?
+  bio           String?
+  isPremium     Boolean  @default(false)
+  premiumUntil  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  entertainmentDNA   EntertainmentDNA?
+  watchlistItems     WatchlistItem[]
+  collections        Collection[]
+  reviews            Review[]
+  ratings            Rating
+  achievements       UserAchievement[]
+  followers          FollowRelation[] @relation("Follower")
+  following          FollowRelation[] @relation("Following")
+}
+
+model EntertainmentDNA {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Genre scores (0-100)
+  action        Int      @default(0)
+  sciFi         Int      @default(0)
+  comedy        Int      @default(0)
+  romance       Int      @default(0)
+  crime         Int      @default(0)
+  fantasy       Int      @default(0)
+  documentary   Int      @default(0)
+  thriller      Int      @default(0)
+  adventure     Int      @default(0)
+  horror        Int      @default(0)
+  anime         Int      @default(0)
+  music         Int      @default(0)
+  podcast       Int      @default(0)
+  
+  // Mood preferences (0-100)
+  emotional     Int      @default(0)
+  funny         Int      @default(0)
+  inspirational Int      @default(0)
+  dark          Int      @default(0)
+  mindBlowing   Int      @default(0)
+  relaxing      Int      @default(0)
+  intense       Int      @default(0)
+  familyFriendly Int    @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WatchlistItem {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId     String   // External ID from TMDB, Jikan, Spotify, etc.
+  contentType   String   // movie, anime, tv, music, podcast
+  title         String
+  posterUrl     String?
+  addedAt       DateTime @default(now())
+  collectionId  String?  // Optional: if added to a specific collection
+  
+  collection    Collection? @relation(fields: [collectionId], references: [id])
+  
+  @@index([userId, contentType])
+}
+
+model Collection {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  emoji         String?  // For visual representation
+  isPublic      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  watchlistItems WatchlistItem[]
+  
+  @@index([userId])
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId     String
+  contentType   String   // movie, anime, tv, music, podcast
+  rating        Int      @default(0) // 1-5 stars
+  text          String?
+  tags          String[] // For quick tags
+  isSpoiler     Boolean  @default(false)
+  sentiment     String?  // AI-generated sentiment summary
+  likes         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([contentId, contentType])
+}
+
+model ReviewLike {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, reviewId])
+}
+
+model Rating {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId     String
+  contentType   String   // movie, anime, tv, music, podcast
+  score         Int      // 1-10 or 1-5? Let's use 1-10 for precision
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([userId, contentId, contentType])
+  @@index([userId])
+}
+
+model Achievement {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  icon          String?  // Emoji or icon identifier
+  rarity        String   // common, rare, epic, legendary
+  condition     Json     // Store condition as JSON for flexibility
+  createdAt     DateTime @default(now())
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  earnedAt      DateTime @default(now())
+  
+  @@unique([userId, achievementId])
+}
+
+model FollowRelation {
+  id            String   @id @default(uuid())
+  followerId    String
+  follower      User     @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  followingId   String
+  following     User     @relation(fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  
+  @@unique([followerId, followingId])
+}
+
+model ContentCache {
+  id            String   @id @default(uuid())
+  contentId     String   // External ID
+  contentType   String   // movie, anime, tv, music, podcast
+  data          Json     // Cached API response
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime // For cache expiration
+  
+  @@index([contentId, contentType])
+}
+
+model UserInteraction {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId     String
+  contentType   String
+  actionType    String   // view, click, rating, review, watchlist_add, etc.
+  metadata      Json?    // Additional data about the interaction
+  createdAt     DateTime @default(now())
+  
+  @@index([userId, contentType])
+  @@index([contentId, contentType])
+}
