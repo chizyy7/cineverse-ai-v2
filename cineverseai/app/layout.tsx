@@ -1,6 +1,7 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { Outfit } from 'next/font/google';
+import AuthButton from '@/components/ui/AuthButton';
 
 const inter = Inter({ subsets: ['latin'] });
 const outfit = Outfit({ subsets: ['latin'] });
@@ -17,7 +18,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${outfit.className} ${inter.className}`}>
-      <body>{children}</body>
+      <body>
+        <div className="flex items-center justify-between px-6 py-4 bg-background-secondary/50 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <h1 className="font-outfit text-xl text-primary">CineVerse AI</h1>
+          </div>
+          <div className="hidden md:flex items-center space-x-4">
+            <AuthButton />
+          </div>
+        </div>
+        <div className="px-6 pb-4">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
