@@ -78,6 +78,7 @@ const CACHE_KEYS = {
   GET_MOVIE_RECOMMENDATIONS: (id: number) => `tmdb:movie:${id}:recommendations`,
   SEARCH_TV: (query: string) => `tmdb:search:tv:${query}`,
   GET_TV_DETAILS: (id: number) => `tmdb:tv:${id}`,
+  GET_TV_RECOMMENDATIONS: (id: number) => `tmdb:tv:${id}:recommendations`,
   GET_POPULAR_MOVIES: (genreId: number) => `tmdb:popular:movies:${genreId}`,
   DISCOVER_MOVIES: (filters: any) => `tmdb:discover:movies:${JSON.stringify(filters)}`,
   GET_GENRES: 'tmdb:genres:list',
@@ -209,6 +210,31 @@ export const tmdb = {
     } catch (error) {
       console.error(`Error getting TV details for ID ${id}:`, error);
       throw new Error(`Failed to get TV details for ID ${id}`);
+    }
+  },
+
+  getTVRecommendations: async (id: number): Promise<TMDBShow[]> => {
+    const cacheKey = `tmdb:tv:${id}:recommendations`;
+    
+    // Try to get from cache first
+    const cached = await getCache<TMDBShow[]>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+    
+    try {
+      const response = await tmdbApi.get(`/tv/${id}/recommendations`, {
+        params: { language: 'en-US', page: 1 },
+      });
+      const result = response.data.results;
+      
+      // Cache for 3 hours
+      await setCache(cacheKey, result, 10800);
+      
+      return result;
+    } catch (error) {
+      console.error(`Error getting TV recommendations for ID ${id}:`, error);
+      throw new Error(`Failed to get TV recommendations for ID ${id}`);
     }
   },
 
