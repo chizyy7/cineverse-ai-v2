@@ -13,8 +13,14 @@ export interface ContentItem {
   id: string;
   title: string;
   type: ContentType;
+  posterUrl: string | null;
+  rating: number | null;
   genres: string[];
-  // In a real implementation, this would have more fields
+  platforms: string[];
+  streamingUrl: string | null;
+  description: string | null;
+  year: number | null;
+  matchScore?: number;
 }
 
 export interface UserDNA {
@@ -102,18 +108,11 @@ function calculateGenreScore(
     'Romance': 'romance',
     'Sci-Fi': 'sciFi',
     'Thriller': 'thriller',
-    // Anime genres (often map to broader categories)
-    'Action': 'anime',
-    'Adventure': 'anime',
-    'Comedy': 'anime',
-    'Drama': 'anime',
-    'Fantasy': 'anime',
-    'Horror': 'anime',
+    // Anime-specific genres (non-overlapping with movie genres above)
     'Magic': 'anime',
     'Mecha': 'anime',
     'Music': 'anime',
     'Psychological': 'anime',
-    'Romance': 'anime',
     'Samurai': 'anime',
     'School': 'anime',
     'Shounen': 'anime',

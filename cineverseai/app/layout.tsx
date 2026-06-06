@@ -2,6 +2,7 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import { Outfit } from 'next/font/google';
 import AuthButton from '@/components/ui/AuthButton';
+import { ChatPanel } from '@/components/features/AIAssistant/ChatPanel';
 
 const inter = Inter({ subsets: ['latin'] });
 const outfit = Outfit({ subsets: ['latin'] });
@@ -30,6 +31,7 @@ export default function RootLayout({
         <div className="px-6 pb-4">
           {children}
         </div>
+        <ChatPanel />
       </body>
     </html>
   );

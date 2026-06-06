@@ -36,7 +36,7 @@ export const ContentCard = ({ content, isFeatured = false, onSave }: ContentCard
       whileHover={{ scale: isFeatured ? 1.02 : 1.03 }}
       whileTap={{ scale: isFeatured ? 0.98 : 0.97 }}
       transition={{ duration: 0.2 }}
-      className={`relative group ${isFeatured ? 'w-full mb-6' : 'w-72'}`
+      className={`relative group ${isFeatured ? 'w-full mb-6' : 'w-72'}`}
     >
       {/* Poster Image */}
       <div className="relative w-full h-[calc(100%_*1.5)] max-h-[400px] rounded-xl overflow-hidden">

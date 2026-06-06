@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+
 export const PricingSection = () => {
   return (
     <section className="py-20 bg-background-secondary">

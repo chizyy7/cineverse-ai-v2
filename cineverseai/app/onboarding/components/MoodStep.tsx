@@ -18,11 +18,10 @@ export const MoodStep = ({ selected, onChange }: MoodStepProps) => {
   ];
 
   const toggleSelection = (moodId: string) => {
-    onChange(prev => 
-      prev.includes(moodId) 
-        ? prev.filter(id => id !== moodId) 
-        : [...prev, moodId]
-    );
+    const next = selected.includes(moodId)
+      ? selected.filter(id => id !== moodId)
+      : [...selected, moodId];
+    onChange(next);
   };
 
   return (
@@ -46,9 +45,7 @@ export const MoodStep = ({ selected, onChange }: MoodStepProps) => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: moods.indexOf(mood) * 0.05 }}
-            className={`${selected.includes(mood.id) 
-              ? 'glow-border p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300'
-              : 'p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300 rounded-lg'`}
+            className={`${selected.includes(mood.id) ? 'glow-border p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300' : 'p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300 rounded-lg'}`}
             >
               <div className="flex flex-col items-center space-y-3">
                 <div className="text-3xl">{mood.emoji}</div>

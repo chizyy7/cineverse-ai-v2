@@ -204,7 +204,7 @@ function getFallbackRecommendations(
   }
   
   // Find top 3 DNA categories
-  const dnaEntries = Object.entries(dna).filter(([_, value]): value is number => typeof value === 'number');
+  const dnaEntries = Object.entries(dna).filter(([_, value]) => typeof value === 'number') as [string, number][];
   const topCategories = dnaEntries
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3)

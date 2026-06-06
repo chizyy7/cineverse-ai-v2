@@ -25,10 +25,13 @@ model User {
   watchlistItems     WatchlistItem[]
   collections        Collection[]
   reviews            Review[]
-  ratings            Rating
+  reviewLikes        ReviewLike[]
+  ratings            Rating[]   @relation("UserRatings")
   achievements       UserAchievement[]
   followers          FollowRelation[] @relation("Follower")
   following          FollowRelation[] @relation("Following")
+  interactions       UserInteraction[]
+  chatMessages       ChatMessage[]
 }
 
 model EntertainmentDNA {
@@ -112,6 +115,8 @@ model Review {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
+  reviewLikes   ReviewLike[]
+  
   @@index([userId])
   @@index([contentId, contentType])
 }
@@ -130,7 +135,7 @@ model ReviewLike {
 model Rating {
   id            String   @id @default(uuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User     @relation("UserRatings", fields: [userId], references: [id], onDelete: Cascade)
   contentId     String
   contentType   String   // movie, anime, tv, music, podcast
   score         Int      // 1-10 or 1-5? Let's use 1-10 for precision
@@ -142,13 +147,14 @@ model Rating {
 }
 
 model Achievement {
-  id            String   @id @default(uuid())
-  title         String
-  description   String?
-  icon          String?  // Emoji or icon identifier
-  rarity        String   // common, rare, epic, legendary
-  condition     Json     // Store condition as JSON for flexibility
-  createdAt     DateTime @default(now())
+  id                String   @id @default(uuid())
+  title             String
+  description       String?
+  icon              String?  // Emoji or icon identifier
+  rarity            String   // common, rare, epic, legendary
+  condition         Json     // Store condition as JSON for flexibility
+  createdAt         DateTime @default(now())
+  userAchievements  UserAchievement[]
 }
 
 model UserAchievement {
@@ -165,9 +171,9 @@ model UserAchievement {
 model FollowRelation {
   id            String   @id @default(uuid())
   followerId    String
-  follower      User     @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  follower      User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
   followingId   String
-  following     User     @relation(fields: [followingId], references: [id], onDelete: Cascade)
+  following     User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   
   @@unique([followerId, followingId])
@@ -196,4 +202,17 @@ model UserInteraction {
   
   @@index([userId, contentType])
   @@index([contentId, contentType])
+}
+
+model ChatMessage {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role          String   // 'user' or 'assistant'
+  content       String
+  metadata      Json?    // For storing tool calls, recommendations, etc.
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
 }

@@ -45,7 +45,7 @@ export function normalizeTMDBShow(show: any): ContentItem {
     platforms: [],
     streamingUrl: null,
     description: show.overview,
-    year: show.first_air_date ? new Date(first_air_date).getFullYear() : null,
+    year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
   };
 }
 

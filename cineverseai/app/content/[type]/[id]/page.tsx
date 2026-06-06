@@ -125,7 +125,7 @@ export default async function ContentDetailPage({
   }
 
   // Calculate match score and explanation
-  const userDNA = user.entertainmentDNA;
+  const userDNA = (user as any).entertainmentDNA;
   let matchScore = 50; // default
   let explanation = 'We think you\'ll enjoy this content based on your taste.';
   
@@ -145,7 +145,8 @@ export default async function ContentDetailPage({
     };
 
     matchScore = calculateMatchScore(contentItem, userDNA, null, false);
-    explanation = generateExplanation(contentItem, userDNA, user.name || user.email?.split('@')[0] || 'there');
+    const anyUser = user as any;
+    explanation = generateExplanation(contentItem, userDNA, anyUser.name || anyUser.user_metadata?.name || anyUser.email?.split('@')[0] || 'there');
   }
 
   return (
@@ -197,10 +198,9 @@ export default async function ContentDetailPage({
                 <span>•</span>
                 <span>{content.type}</span>
                 {content.genres?.slice(0, 3).map((genre: string, index: number) => (
-                  <span key={index}>
-                    {index > 0 && '•'}
+                  <span key={index} className="text-text-secondary">
+                    {index > 0 && <span className="mx-1">•</span>}
                     {genre}
-                  >
                   </span>
                 ))}
               </div>
@@ -302,25 +302,25 @@ export default async function ContentDetailPage({
       <div className="px-6 pb-8">
         <div className="flex space-x-4 mb-6 border-b border-accent-blue/10">
           <button
-            onclick={() => { /* Set active tab to overview */ }}
+            onClick={() => { /* Set active tab to overview */ }}
             className={`flex-1 py-3 text-center font-medium ${/* active tab styling */ 'text-accent-blue border-b-2 border-accent-blue'}`}
           >
             Overview
           </button>
           <button
-            onclick={() => { /* Set active tab to similar */ }}
+            onClick={() => { /* Set active tab to similar */ }}
             className="flex-1 py-3 text-center font-medium text-accent-blue/50 hover:text-accent-blue"
           >
             Similar Content
           </button>
           <button
-            onclick={() => { /* Set active tab to reviews */ }}
+            onClick={() => { /* Set active tab to reviews */ }}
             className="flex-1 py-3 text-center font-medium text-accent-blue/50 hover:text-accent-blue"
           >
             Reviews
           </button>
           <button
-            onclick={() => { /* Set active tab to where to watch */ }}
+            onClick={() => { /* Set active tab to where to watch */ }}
             className="flex-1 py-3 text-center font-medium text-accent-blue/50 hover:text-accent-blue"
           >
             Where to Watch
@@ -391,7 +391,7 @@ export default async function ContentDetailPage({
 
 // Helper function to get top DNA traits
 function getTopDnaTraits(dna: any, count: number): string[] {
-  const dnaArray = Object.entries(dna).filter(([, value]): value is number => typeof value === 'number');
+  const dnaArray = Object.entries(dna).filter(([, value]) => typeof value === 'number') as [string, number][];
   return dnaArray
     .sort(([, a], [, b]) => b - a)
     .slice(0, count)

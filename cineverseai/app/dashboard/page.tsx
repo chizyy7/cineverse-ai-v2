@@ -3,11 +3,9 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ContentCard } from '@/components/features/ContentCard';
 import { getUser } from '@/lib/auth';
-import { getRecommendations } from '@/lib/ai/recommendations';
-import { UserWithDNA } from '@/lib/ai/recommendations';
 
 export default function Dashboard() {
-  const [user, setUser] = useState<UserWithDNA | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -213,12 +211,12 @@ export default function Dashboard() {
   };
 
   // Helper functions
-  const getTopUserGenres = (user: UserWithDNA): string[] => {
+  const getTopUserGenres = (user: any): string[] => {
     const dna = user.entertainmentDNA;
     if (!dna) return [];
     
     // Convert DNA to array and sort by score
-    const dnaArray = Object.entries(dna).filter(([, value]): value is number => typeof value === 'number');
+    const dnaArray = Object.entries(dna).filter(([, value]) => typeof value === 'number') as [string, number][];
     return dnaArray
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
@@ -284,7 +282,7 @@ export default function Dashboard() {
       {/* Top Bar */}
       <div className="flex items-center justify-between px-6 py-4 bg-background-secondary/50 backdrop-blur-sm">
         <div className="flex items-center space-x-3">
-          <h1 className="font-outfit text-xl text-primary">CineVerse AI</div>
+          <h1 className="font-outfit text-xl text-primary">CineVerse AI</h1>
         </div>
         <div className="hidden md:flex items-center space-x-4">
           {/* In a real app, we'd have search, notifications, avatar */}

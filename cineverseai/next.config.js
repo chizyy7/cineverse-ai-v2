@@ -10,6 +10,9 @@ const nextConfig = {
   },
   // Optional: Add other Next.js config here
   reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['openai'],
+  },
 };
 
 module.exports = nextConfig;

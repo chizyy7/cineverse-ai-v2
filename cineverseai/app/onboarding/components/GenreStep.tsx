@@ -63,11 +63,10 @@ export const GenreStep = ({ selected, onChange, contentTypes }: GenreStepProps) 
   const genres = getGenresForSelectedTypes();
 
   const toggleSelection = (genreId: string) => {
-    onChange(prev => 
-      prev.includes(genreId) 
-        ? prev.filter(id => id !== genreId) 
-        : [...prev, genreId]
-    );
+    const next = selected.includes(genreId)
+      ? selected.filter(id => id !== genreId)
+      : [...selected, genreId];
+    onChange(next);
   };
 
   // If no content types are selected, we show a message

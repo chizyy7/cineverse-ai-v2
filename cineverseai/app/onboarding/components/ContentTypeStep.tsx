@@ -15,11 +15,10 @@ export const ContentTypeStep = ({ selected, onChange }: ContentTypeStepProps) =>
   ];
 
   const toggleSelection = (type: string) => {
-    onChange(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type) 
-        : [...prev, type]
-    );
+    const next = selected.includes(type)
+      ? selected.filter(t => t !== type)
+      : [...selected, type];
+    onChange(next);
   };
 
   return (
@@ -43,9 +42,8 @@ export const ContentTypeStep = ({ selected, onChange }: ContentTypeStepProps) =>
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: selected.indexOf(type.id) * 0.05 }}
-            className={`${selected.includes(type.id) 
-              ? 'glow-border p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300'
-              : 'p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300 rounded-lg'`}
+            onClick={() => toggleSelection(type.id)}
+            className={`${selected.includes(type.id) ? 'glow-border p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300' : 'p-6 bg-background-tertiary hover:bg-accent-blue/5 transition-all duration-300 rounded-lg'}`}
             >
               <div className="flex items-center space-x-3">
                 <div className="text-4xl">{type.icon}</div>
