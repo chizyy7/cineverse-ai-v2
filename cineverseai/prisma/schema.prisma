@@ -78,10 +78,15 @@ model WatchlistItem {
   posterUrl     String?
   addedAt       DateTime @default(now())
   collectionId  String?  // Optional: if added to a specific collection
-  
+  order         Int      @default(0) // For drag-and-drop reordering
+  completed     Boolean  @default(false)
+  completedAt   DateTime?
+
   collection    Collection? @relation(fields: [collectionId], references: [id])
-  
+
+  @@unique([userId, contentId, contentType])
   @@index([userId, contentType])
+  @@index([userId, collectionId])
 }
 
 model Collection {
