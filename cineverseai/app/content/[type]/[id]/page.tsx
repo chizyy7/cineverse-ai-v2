@@ -10,6 +10,7 @@ import { normalizeTMDBMovie, normalizeTMDBShow, normalizeJikanAnime, normalizeSp
 import { calculateMatchScore, ContentItem } from '@/lib/ai/matchScore';
 import { generateExplanation } from '@/lib/ai/explanation';
 import { ContentCard } from '@/components/features/ContentCard';
+import { ContentReviewsClient } from '@/components/features/ContentReviewsClient';
 
 // We'll define a helper to fetch content based on type and id
 async function fetchContentByTypeAndId(type: string, id: string): Promise<any> {
@@ -354,10 +355,15 @@ export default async function ContentDetailPage({
             </div>
           </div>
           
-          {/* Reviews - Placeholder */}
+          {/* Reviews */}
           <div className="mb-4">
-            <h3 className="font-outfit text-xl text-primary mb-2">Reviews</h3>
-            <p className="text-secondary">No reviews yet. Be the first to review!</p>
+            <h3 className="font-outfit text-xl text-primary mb-3">Reviews</h3>
+            <ContentReviewsClient
+              contentId={id}
+              contentType={type}
+              contentTitle={content.title}
+              currentUserId={user?.id || null}
+            />
           </div>
           
           {/* Where to Watch - Placeholder */}

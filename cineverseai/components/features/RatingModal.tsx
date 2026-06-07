@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/Toast';
 
@@ -13,17 +13,47 @@ interface RatingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (data: { rating: number; tags: string[]; text: string }) => void;
+  onSubmitted?: () => void;
   title?: string;
+  contentId?: string;
   contentType?: string;
+  contentTitle?: string;
 }
 
-export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: RatingModalProps) {
+const RATING_LABELS: Record<number, string> = {
+  1: 'Not for me',
+  2: 'Meh',
+  3: 'Good',
+  4: 'Loved it',
+  5: 'Masterpiece!',
+};
+
+export function RatingModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  onSubmitted,
+  title,
+  contentId,
+  contentType,
+  contentTitle,
+}: RatingModalProps) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { success, error: toastError } = useToast();
+
+  // Reset state every time the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setRating(0);
+      setHover(0);
+      setSelectedTags([]);
+      setText('');
+    }
+  }, [isOpen]);
 
   function toggleTag(tag: string) {
     setSelectedTags((prev) =>
@@ -38,15 +68,34 @@ export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: R
     }
     setSubmitting(true);
     try {
+      // Local-only callback (for tests / demos)
       onSubmit?.({ rating, tags: selectedTags, text });
+
+      // Persist to the API if we have a contentId + contentType
+      if (contentId && contentType) {
+        const res = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contentId,
+            contentType,
+            contentTitle: contentTitle || title,
+            rating,
+            text,
+            tags: selectedTags,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to save review');
+        }
+      }
+
       success(`Rated ${rating}/5 stars!`);
-      // Reset
-      setRating(0);
-      setSelectedTags([]);
-      setText('');
+      onSubmitted?.();
       onClose();
-    } catch (e) {
-      toastError('Failed to submit rating');
+    } catch (e: any) {
+      toastError(e?.message || 'Failed to submit rating');
     } finally {
       setSubmitting(false);
     }
@@ -108,7 +157,7 @@ export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: R
                         <svg
                           className={`w-10 h-10 transition-colors ${
                             star <= (hover || rating)
-                              ? 'text-accent-gold fill-current'
+                              ? 'text-accent-gold fill-current drop-shadow-[0_0_4px_rgba(245,158,11,0.6)]'
                               : 'text-text-tertiary'
                           }`}
                           viewBox="0 0 20 20"
@@ -119,9 +168,13 @@ export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: R
                     ))}
                   </div>
                   {rating > 0 && (
-                    <p className="text-sm text-accent-gold mt-2 font-medium">
-                      {rating === 5 ? 'Masterpiece!' : rating === 4 ? 'Loved it' : rating === 3 ? 'Good' : rating === 2 ? 'Meh' : 'Not for me'}
-                    </p>
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm text-accent-gold mt-2 font-medium"
+                    >
+                      {RATING_LABELS[rating]}
+                    </motion.p>
                   )}
                 </div>
 
@@ -148,8 +201,12 @@ export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: R
                 {/* Text Review */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-text-secondary">Review <span className="text-text-tertiary/60">(optional)</span></p>
-                    <p className="text-xs text-text-tertiary">{text.length}/500</p>
+                    <p className="text-sm text-text-secondary">
+                      Review <span className="text-text-tertiary/60">(optional)</span>
+                    </p>
+                    <p className={`text-xs ${text.length > 450 ? 'text-accent-coral' : 'text-text-tertiary'}`}>
+                      {text.length}/500
+                    </p>
                   </div>
                   <textarea
                     value={text}
@@ -171,9 +228,15 @@ export function RatingModal({ isOpen, onClose, onSubmit, title, contentType }: R
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || rating === 0}
-                  className="px-4 py-2 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
-                  Submit
+                  {submitting && (
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                  Submit Review
                 </button>
               </div>
             </div>

@@ -111,19 +111,28 @@ model Review {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   contentId     String
   contentType   String   // movie, anime, tv, music, podcast
+  contentTitle  String?  // Cache the title for faster listing
   rating        Int      @default(0) // 1-5 stars
-  text          String?
+  text          String?  @db.Text
   tags          String[] // For quick tags
   isSpoiler     Boolean  @default(false)
-  sentiment     String?  // AI-generated sentiment summary
+  sentiment     String?  // "positive" | "negative" | "mixed" | "neutral"
+  themes        String[] // AI-extracted key themes
+  summary       String?  // AI-generated one-liner preview
   likes         Int      @default(0)
+  notHelpful    Int      @default(0)
+  isFlagged     Boolean  @default(false)
+  flaggedReason String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   reviewLikes   ReviewLike[]
-  
+
+  @@unique([userId, contentId, contentType])
   @@index([userId])
   @@index([contentId, contentType])
+  @@index([contentId, contentType, createdAt])
+  @@index([likes])
 }
 
 model ReviewLike {
@@ -132,9 +141,11 @@ model ReviewLike {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewId  String
   review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  value     Int      @default(1) // 1 = helpful (up), -1 = not helpful (down)
   createdAt DateTime @default(now())
-  
+
   @@unique([userId, reviewId])
+  @@index([reviewId])
 }
 
 model Rating {
