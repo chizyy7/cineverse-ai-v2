@@ -24,6 +24,7 @@
     "openai": "^4.28.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "recharts": "^3.8.1",
     "redis": "^6.0.0"
   },
   "devDependencies": {
