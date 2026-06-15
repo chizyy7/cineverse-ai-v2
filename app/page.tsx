@@ -8,6 +8,8 @@ import { SocialProofSection } from '@/components/features/social-proof-section';
 import { PricingSection } from '@/components/features/pricing-section';
 import Footer from '@/components/ui/footer';
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <>

@@ -2,12 +2,13 @@
 const nextConfig = {
   images: {
     domains: [
-      'image.tmdb.org',
-      'i.scdn.co',
-      'crunchyroll.com',
-      'via.placeholder.com',
+      'image.tmdb.org', // TMDB
+      'i.scdn.co', // Spotify
+      'crunchyroll.com', // Crunchyroll
+      'via.placeholder.com', // Placeholder images
     ],
   },
+  // Optional: Add other Next.js config here
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['openai'],

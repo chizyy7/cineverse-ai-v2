@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ReviewsList } from '@/components/features/ReviewsList';
 import { RatingModal } from '@/components/features/RatingModal';
-import { getUser } from '@/lib/auth';
+import { createClientBrowser } from '@/lib/supabase-client';
 
 const VALID_CONTENT_TYPES = ['movie', 'anime', 'tv', 'music', 'podcast'];
 
@@ -25,7 +25,8 @@ export default function ContentReviewsPage({ params }: { params: Promise<{ conte
 
   useEffect(() => {
     (async () => {
-      const u = await getUser();
+      const supabase = createClientBrowser();
+      const { data: { user: u } } = await supabase.auth.getUser();
       setCurrentUserId(u?.id || null);
     })();
   }, []);

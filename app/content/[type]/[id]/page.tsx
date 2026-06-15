@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { getUser } from '@/lib/auth';
 import tmdb from '@/lib/tmdb';
 import anime from '@/lib/anime';

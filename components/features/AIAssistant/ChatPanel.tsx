@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUser } from '@/lib/auth';
+import { createClientBrowser } from '@/lib/supabase-client';
 import { fetchChatHistory, ChatHistoryItem } from '@/lib/actions/chat';
 
 interface ChatMessage {
@@ -41,7 +41,8 @@ export function ChatPanel() {
 
     (async () => {
       try {
-        const u = await getUser();
+        const supabase = createClientBrowser();
+        const { data: { user: u } } = await supabase.auth.getUser();
         if (!mounted) return;
         setUser(u);
         setAuthChecked(true);
