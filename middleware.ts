@@ -1,51 +1,62 @@
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSession } from '@/lib/auth';
 
-// This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          request.cookies.set(name, value);
+          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse.cookies.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          request.cookies.set(name, '');
+          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse.cookies.set(name, '', options);
+        },
+      },
+    }
+  );
+
   const { pathname } = request.nextUrl;
-  
-  // Protect dashboard, onboarding, and profile routes
+
   const protectedPaths = ['/dashboard', '/onboarding', '/profile'];
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
-  
+
   if (isProtectedPath) {
-    const session = await getSession();
-    
-    // If no session, redirect to login
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = '/(auth)/login';
-      url.search = `callbackUrl=${encodeURIComponent(pathname)}`;
+      url.pathname = '/login';
+      url.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(url);
     }
   }
-  
-  // If user is logged in and trying to access auth pages, redirect to dashboard
-  if (pathname.startsWith('/(auth)/')) {
-    const session = await getSession();
-    if (session) {
+
+  if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
     }
   }
-  
-  return NextResponse.next();
+
+  return supabaseResponse;
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/api (next.js API routes)
-     * - _next/static (next.js static files)
-     * - _next/image (next.js image optimization)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     '/((?!_next/api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 };
