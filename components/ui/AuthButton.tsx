@@ -67,10 +67,10 @@ export default function AuthButton() {
         </div>
       ) : (
         <div className="flex items-center space-x-3">
-          <Link href="/(auth)/login" className="flex items-center space-x-2 px-3 py-2 bg-accent-blue/10 text-accent-blue rounded-lg hover:bg-accent-blue/20 transition-colors">
+          <Link href="/login" className="flex items-center space-x-2 px-3 py-2 bg-accent-blue/10 text-accent-blue rounded-lg hover:bg-accent-blue/20 transition-colors">
             Log in
           </Link>
-          <Link href="/(auth)/signup" className="flex items-center space-x-2 px-3 py-2 bg-accent-blue text-white font-medium rounded-lg hover:bg-accent-blue/90 transition-colors">
+          <Link href="/signup" className="flex items-center space-x-2 px-3 py-2 bg-accent-blue text-white font-medium rounded-lg hover:bg-accent-blue/90 transition-colors">
             Sign Up
           </Link>
         </div>

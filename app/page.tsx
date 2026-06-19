@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { HeroSection } from '@/components/features/hero-section';
 import { ProblemSection } from '@/components/features/problem-section';
 import { FeaturesSection } from '@/components/features/features-section';

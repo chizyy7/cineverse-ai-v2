@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -23,7 +25,7 @@ export const HeroSection = () => {
             CineVerse AI builds your unique Entertainment DNA and recommends movies, anime, TV shows, music, and podcasts using advanced AI. Discover content you'll love across all platforms.
           </p>
           <div className="flex justify-center space-x-4">
-            <Link href="/(auth)/signup" className="flex items-center px-8 py-4 bg-accent-blue text-white rounded-lg font-medium transition-all hover:bg-accent-blue/90">
+            <Link href="/signup" className="flex items-center px-8 py-4 bg-accent-blue text-white rounded-lg font-medium transition-all hover:bg-accent-blue/90">
               Get Started Free
             </Link>
             <Link href="#how-it-works" className="flex items-center px-8 py-4 border border-accent-blue text-accent-blue rounded-lg font-medium transition-all hover:bg-accent-blue/10">
