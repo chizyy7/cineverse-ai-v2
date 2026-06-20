@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { signIn } from '@/lib/actions/auth';
+import { createClientBrowser } from '@/lib/supabase-client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClientBrowser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,9 +20,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn({ email, password });
-      // Check if user has completed onboarding (would check EntertainmentDNA in real app)
-      // For now, we'll redirect to dashboard
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
@@ -126,7 +126,7 @@ export default function LoginPage() {
           <p className="text-secondary">
             Don't have an account?{' '}
             <Link
-              href="/(auth)/signup"
+              href="/signup"
               className="text-accent-blue font-medium hover:text-accent-blue/80 transition-colors"
             >
               Sign up
