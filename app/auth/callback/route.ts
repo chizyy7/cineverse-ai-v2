@@ -10,22 +10,34 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const profile = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { id: true },
-        });
-
-        if (profile) {
-          return NextResponse.redirect(`${origin}/dashboard`);
-        }
-        return NextResponse.redirect(`${origin}/onboarding`);
-      }
-      return NextResponse.redirect(`${origin}${next}`);
+    if (error) {
+      console.error('Auth callback error:', error.message);
+      return NextResponse.redirect(`${origin}?error=${encodeURIComponent(error.message)}`);
     }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.redirect(`${origin}?error=no_user`);
+    }
+
+    const existing = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email!,
+          username: user.user_metadata?.username || user.email!.split('@')[0],
+        },
+      });
+      return NextResponse.redirect(`${origin}/onboarding`);
+    }
+
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
-  return NextResponse.redirect(`${origin}?error=auth_callback_error`);
+  return NextResponse.redirect(`${origin}?error=no_code`);
 }

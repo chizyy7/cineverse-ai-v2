@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { signUp } from '@/lib/actions/auth';
 import { createClientBrowser } from '@/lib/supabase-client';
 
 export default function SignUpPage() {
@@ -29,9 +28,42 @@ export default function SignUpPage() {
         throw new Error('Passwords do not match');
       }
 
-      await signUp({ email, username, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username },
+        },
+      });
+
+      if (error) throw new Error(error.message);
+
+      if (data?.user?.identities?.length === 0) {
+        setError('An account with this email already exists.');
+        return;
+      }
+
+      if (data?.user?.confirmation_sent_at) {
+        setSuccess('Check your email for a confirmation link before logging in.');
+        return;
+      }
+
+      const res = await fetch('/api/auth/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.user!.id,
+          email: data.user!.email!,
+          username,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error || 'Failed to create profile');
+      }
+
       setSuccess('Account created successfully! Redirecting...');
-      // Wait a bit then redirect to onboarding
       setTimeout(() => {
         router.push('/onboarding');
       }, 1500);

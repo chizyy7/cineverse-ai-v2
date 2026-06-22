@@ -20,8 +20,31 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw new Error(error.message);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          throw new Error('Please confirm your email address before logging in. Check your inbox.');
+        }
+        throw new Error(error.message);
+      }
+
+      const res = await fetch('/api/auth/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.user!.id,
+          email: data.user!.email!,
+          username: data.user!.user_metadata?.username || data.user!.email!.split('@')[0],
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        if (body.error !== 'User already exists') {
+          console.error('Failed to ensure user profile:', body.error);
+        }
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
