@@ -5,7 +5,7 @@ export interface UserProfile {
   avatarUrl: string | null;
   bio: string | null;
   createdAt: string;
-  isPremium?: boolean;
+  isPremium: boolean;
 }
 
 export interface UserWithStats extends UserProfile {
@@ -39,6 +39,7 @@ export interface FollowUser {
   avatarUrl: string | null;
   bio: string | null;
   isFollowing: boolean;
+  isPremium?: boolean;
 }
 
 export interface ActivityItem {

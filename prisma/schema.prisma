@@ -17,6 +17,12 @@ model User {
   bio           String?
   isPremium     Boolean  @default(false)
   premiumUntil  DateTime?
+  // Stripe fields for subscription management
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  stripePriceId String?
+  stripeCurrentPeriodEnd DateTime?
+  stripeCancelAtPeriodEnd Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

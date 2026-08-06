@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import FollowButton from './FollowButton';
+import PremiumBadge from '@/components/ui/PremiumBadge';
 import { FollowUser } from '@/types/social';
 
 interface UserCardProps {
@@ -31,6 +32,12 @@ export default function UserCard({
               className="w-14 h-14 rounded-full object-cover ring-2 ring-accent-blue/20 hover:ring-accent-blue/50 transition-all"
             />
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-accent-success rounded-full border-2 border-background-secondary" />
+            {/* Premium badge on avatar */}
+            {user.isPremium && (
+              <div className="absolute bottom-0 left-0 w-3 h-3 bg-accent-gold rounded-full border-2 border-background-secondary flex items-center justify-center">
+                <span className="text-xs text-white font-bold">★</span>
+              </div>
+            )}
           </div>
         </Link>
 
@@ -62,7 +69,8 @@ export default function UserCard({
           )}
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 space-x-2">
+          <PremiumBadge isPremium={user.isPremium ?? false} className="ml-2" />
           <FollowButton userId={user.id} initialIsFollowing={user.isFollowing} size="sm" />
         </div>
       </div>

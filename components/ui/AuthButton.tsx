@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClientBrowser } from '@/lib/supabase-client';
+import PremiumBadge from '@/components/ui/PremiumBadge';
 
 export default function AuthButton() {
   const [user, setUser] = useState<any>(null);
@@ -16,8 +17,20 @@ export default function AuthButton() {
       try {
         setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+        if (user) {
+          // Fetch extended user data from our database to get isPremium
+          const { data: profile } = await supabase
+            .from('users')
+            .select('isPremium')
+            .eq('id', user.id)
+            .single();
+          // Merge the isPremium field into the user object
+          setUser({ ...user, isPremium: profile?.isPremium ?? false });
+        } else {
+          setUser(null);
+        }
       } catch (err) {
+        console.error('Error fetching user profile:', err);
         setUser(null);
       } finally {
         setLoading(false);
@@ -54,9 +67,20 @@ export default function AuthButton() {
               className="w-full h-full object-cover rounded-full ring-2 ring-accent-blue/20"
             />
             <div className="absolute bottom-0 right-0 w-2 h-2 bg-accent-success rounded-full border-2 border-background-primary"></div>
+            {/* Premium badge on avatar */}
+            {user.isPremium && (
+              <div className="absolute bottom-0 left-0 w-2 h-2 bg-accent-gold rounded-full border-2 border-background-primary flex items-center justify-center">
+                <span className="text-xs text-white font-bold">★</span>
+              </div>
+            )}
           </div>
           <div className="hidden md:block">
-            <p className="text-sm font-medium text-primary">{user.user_metadata?.username || user.email?.split('@')[0] || 'User'}</p>
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium text-primary">{user.user_metadata?.username || user.email?.split('@')[0] || 'User'}</p>
+              {user.isPremium && (
+                <PremiumBadge className="ml-1" />
+              )}
+            </div>
           </div>
           <button
             onClick={handleSignOut}
