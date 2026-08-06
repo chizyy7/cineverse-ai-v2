@@ -176,8 +176,8 @@ export const anime = {
       // Filter by genre if genre is specified
       let result = response.data.data;
       if (genre) {
-        result = result.filter((anime: AnimeResult) => 
-          anime.genres.some((g: any) => g.name.toLowerCase() === genre.toLowerCase())
+        result = result.filter((anime: AnimeResult) =>
+          anime.genres.some((g: { mal_id: number; name: string; type: string; url: string }) => g.name.toLowerCase() === genre.toLowerCase())
         ).slice(0, 20);
       } else {
         result = result.slice(0, 20);
@@ -204,11 +204,11 @@ export const anime = {
     
     try {
       const response = await jikanApi.get(`/anime/${id}/recommendations`);
-      const result = response.data.data.map((rec: any) => rec.entry);
-      
+      const result = response.data.data.map((rec: { entry: AnimeResult }) => rec.entry);
+
       // Cache for 3 hours
       await setCache(cacheKey, result, 10800);
-      
+
       return result;
     } catch (error) {
       console.error(`Error getting anime recommendations for ID ${id}:`, error);

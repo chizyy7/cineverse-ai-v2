@@ -107,6 +107,51 @@ export interface SpotifyTrack {
   }[];
 }
 
+export interface SpotifyPlaylist {
+  collaborative: boolean;
+  description: string;
+  external_urls: {
+    spotify: string;
+  };
+  href: string;
+  id: string;
+  images: {
+    url: string;
+    height: number;
+    width: number;
+  }[];
+  name: string;
+  owner: {
+    display_name: string;
+    external_urls: {
+      spotify: string;
+    };
+    href: string;
+    id: string;
+    type: string;
+    uri: string;
+  };
+  primary_color: string | null;
+  public: boolean;
+  snapshot_id: string;
+  tracks: {
+    href: string;
+    total: number;
+  };
+  type: string;
+  uri: string;
+}
+
+export interface SpotifyRecommendation {
+  tracks: SpotifyTrack[];
+  seeds: {
+    id: string;
+    type: string;
+    href: string;
+    url: string;
+  }[];
+}
+
 // Cache keys
 const CACHE_KEYS = {
   SEARCH_ARTISTS: (query: string) => `spotify:search:artists:${query}`,
@@ -174,16 +219,15 @@ export const spotify = {
     }
   },
 
-  searchPlaylists: async (mood: string): Promise<any> => {
-    // Note: We don't have a specific type for playlists in the prompt, so we'll return any for now
+  searchPlaylists: async (mood: string): Promise<SpotifyPlaylist[]> => {
     const cacheKey = CACHE_KEYS.SEARCH_PLAYLISTS(mood);
-    
+
     // Try to get from cache first
-    const cached = await getCache<any[]>(cacheKey);
+    const cached = await getCache<SpotifyPlaylist[]>(cacheKey);
     if (cached !== null) {
       return cached;
     }
-    
+
     try {
       const response = await spotifyApi.get('/search', {
         params: {
@@ -193,10 +237,10 @@ export const spotify = {
         },
       });
       const result = response.data.playlists.items;
-      
+
       // Cache for 1 hour
       await setCache(cacheKey, result, 3600);
-      
+
       return result;
     } catch (error) {
       console.error(`Error searching playlists for mood ${mood}:`, error);
@@ -204,16 +248,15 @@ export const spotify = {
     }
   },
 
-  getRecommendations: async (seedArtists: string[], seedGenres: string[]): Promise<any> => {
-    // Note: We don't have a specific type for recommendations in the prompt, so we'll return any for now
+  getRecommendations: async (seedArtists: string[], seedGenres: string[]): Promise<SpotifyRecommendation> => {
     const cacheKey = CACHE_KEYS.GET_RECOMMENDATIONS(seedArtists, seedGenres);
-    
+
     // Try to get from cache first
-    const cached = await getCache<any[]>(cacheKey);
+    const cached = await getCache<SpotifyRecommendation>(cacheKey);
     if (cached !== null) {
       return cached;
     }
-    
+
     try {
       const response = await spotifyApi.get('/recommendations', {
         params: {
@@ -222,11 +265,11 @@ export const spotify = {
           limit: 20,
         },
       });
-      const result = response.data.tracks;
-      
+      const result = response.data;
+
       // Cache for 30 minutes (recommendations can change)
       await setCache(cacheKey, result, 1800);
-      
+
       return result;
     } catch (error) {
       console.error('Error getting Spotify recommendations:', error);

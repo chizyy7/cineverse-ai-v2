@@ -16,8 +16,8 @@ const tmdbApi = TMDB_API_KEY
   : null;
 
 // Guard helper — returns empty array when tmdbApi is unavailable
-async function tmdbGet<T>(path: string, params?: Record<string, any>): Promise<T> {
-  if (!tmdbApi) return [] as any;
+async function tmdbGet<T>(path: string, params?: Record<string, unknown>): Promise<T> {
+  if (!tmdbApi) return [] as unknown as T;
   const response = await tmdbApi.get(path, params ? { params } : undefined);
   return response.data.results ?? response.data;
 }
@@ -104,7 +104,7 @@ const CACHE_KEYS = {
   GET_TV_DETAILS: (id: number) => `tmdb:tv:${id}`,
   GET_TV_RECOMMENDATIONS: (id: number) => `tmdb:tv:${id}:recommendations`,
   GET_POPULAR_MOVIES: (genreId: number) => `tmdb:popular:movies:${genreId}`,
-  DISCOVER_MOVIES: (filters: any) => `tmdb:discover:movies:${JSON.stringify(filters)}`,
+  DISCOVER_MOVIES: (filters: { genreIds?: number[]; releaseDateGte?: string; releaseDateLte?: string; voteAverageGte?: number; sortBy?: string; page?: number; }) => `tmdb:discover:movies:${JSON.stringify(filters)}`,
   GET_GENRES: 'tmdb:genres:list',
   GET_WATCH_PROVIDERS_MOVIE: (id: number) => `tmdb:movie:${id}:watch/providers`,
   GET_WATCH_PROVIDERS_TV: (id: number) => `tmdb:tv:${id}:watch/providers`,
