@@ -80,6 +80,21 @@ export interface TMDBGenre {
   name: string;
 }
 
+export interface TMDBWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string | null;
+  display_priority: number;
+}
+
+export interface TMDBWatchResults {
+  link: string;
+  flatrate: TMDBWatchProvider[];
+  rent: TMDBWatchProvider[];
+  buy: TMDBWatchProvider[];
+  free: TMDBWatchProvider[];
+}
+
 // Cache keys
 const CACHE_KEYS = {
   SEARCH_MOVIES: (query: string) => `tmdb:search:movies:${query}`,
@@ -91,6 +106,8 @@ const CACHE_KEYS = {
   GET_POPULAR_MOVIES: (genreId: number) => `tmdb:popular:movies:${genreId}`,
   DISCOVER_MOVIES: (filters: any) => `tmdb:discover:movies:${JSON.stringify(filters)}`,
   GET_GENRES: 'tmdb:genres:list',
+  GET_WATCH_PROVIDERS_MOVIE: (id: number) => `tmdb:movie:${id}:watch/providers`,
+  GET_WATCH_PROVIDERS_TV: (id: number) => `tmdb:tv:${id}:watch/providers`,
 };
 
 // API Functions
@@ -321,26 +338,79 @@ export const tmdb = {
   // Genre list
   getGenres: async (): Promise<{ genres: TMDBGenre[] }> => {
     const cacheKey = CACHE_KEYS.GET_GENRES;
-    
+
     // Try to get from cache first
     const cached = await getCache<{ genres: TMDBGenre[] }>(cacheKey);
     if (cached !== null) {
       return cached;
     }
-    
+
     try {
       const response = await tmdbApi.get('/genre/movie/list', {
         params: { language: 'en-US' },
       });
       const result = response.data;
-      
+
       // Cache for 24 hours (genres rarely change)
       await setCache(cacheKey, result, 86400);
-      
+
       return result;
     } catch (error) {
       console.error('Error getting genres:', error);
       throw new Error('Failed to get genres');
+    }
+  },
+
+  // Watch providers
+  getMovieWatchProviders: async (id: number): Promise<TMDBWatchResults | null> => {
+    const cacheKey = CACHE_KEYS.GET_WATCH_PROVIDERS_MOVIE(id);
+
+    // Try to get from cache first
+    const cached = await getCache<TMDBWatchResults | null>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+
+    try {
+      const response = await tmdbApi.get(`/movie/${id}/watch/providers`, {
+        params: { language: 'en-US' },
+      });
+      const result = response.data.results?.US || null;
+
+      // Cache for 8 hours (providers can change but not too frequently)
+      await setCache(cacheKey, result, 28800);
+
+      return result;
+    } catch (error) {
+      console.error(`Error getting watch providers for movie ${id}:`, error);
+      // Return null instead of throwing to allow graceful degradation
+      return null;
+    }
+  },
+
+  getTVWatchProviders: async (id: number): Promise<{ [countryCode: string]: TMDBWatchResults } | null> => {
+    const cacheKey = CACHE_KEYS.GET_WATCH_PROVIDERS_TV(id);
+
+    // Try to get from cache first
+    const cached = await getCache<{ [countryCode: string]: TMDBWatchResults } | null>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+
+    try {
+      const response = await tmdbApi.get(`/tv/${id}/watch/providers`, {
+        params: { language: 'en-US' },
+      });
+      const result = response.data.results || null;
+
+      // Cache for 8 hours (providers can change but not too frequently)
+      await setCache(cacheKey, result, 28800);
+
+      return result;
+    } catch (error) {
+      console.error(`Error getting watch providers for TV show ${id}:`, error);
+      // Return null instead of throwing to allow graceful degradation
+      return null;
     }
   },
 };

@@ -1,6 +1,8 @@
 // Unified content normalizer
 // Normalize TMDB + Jikan + Spotify results into a single ContentItem type
 
+import { tmdb } from './tmdb';
+
 export type ContentType = 'movie' | 'anime' | 'tv' | 'music' | 'podcast';
 
 export interface ContentItem {
@@ -17,33 +19,135 @@ export interface ContentItem {
   matchScore?: number; // Optional: AI-generated match score (0-100)
 }
 
+// Cache for genre maps to avoid repeated API calls
+let movieGenreMap: Record<number, string> = {};
+let tvGenreMap: Record<number, string> = {};
+let genresLoaded = false;
+
+// Load genre maps from TMDB
+async function loadGenreMaps(): Promise<void> {
+  if (genresLoaded) return;
+
+  try {
+    const genresData = await tmdb.getGenres();
+    const movieGenres = genresData.genres.filter((g: any) => g.id > 0); // TMDB returns both movie and TV genres in one call
+    const tvGenres = genresData.genres.filter((g: any) => g.id > 0); // In reality, we'd need to separate them, but TMDB's genre endpoint returns both
+
+    // Create maps for quick lookup
+    movieGenres.forEach((genre: { id: number; name: string }) => {
+      movieGenreMap[genre.id] = genre.name;
+    });
+
+    tvGenres.forEach((genre: { id: number; name: string }) => {
+      tvGenreMap[genre.id] = genre.name;
+    });
+
+    genresLoaded = true;
+  } catch (error) {
+    console.error('Failed to load genre maps:', error);
+    // Continue with empty maps - will show empty genres array
+  }
+}
+
+// Get genre names from genre IDs
+function getGenreNames(genreIds: number[], type: ContentType): string[] {
+  if (genreIds.length === 0) return [];
+
+  // Ensure genres are loaded (fire and forget)
+  if (!genresLoaded) {
+    loadGenreMaps().catch(console.error);
+  }
+
+  const genreMap = type === 'movie' ? movieGenreMap : tvGenreMap;
+  return genreIds
+    .map(id => genreMap[id])
+    .filter((name): name is string => name !== undefined);
+}
+
+// Get watch providers (streaming platforms) for a movie or TV show
+async function getWatchProviders(id: number, type: ContentType): Promise<{ platforms: string[]; streamingUrl: string | null }> {
+  // Ensure genres are loaded (fire and forget)
+  if (!genresLoaded) {
+    loadGenreMaps().catch(console.error);
+  }
+
+  try {
+    if (type === 'movie') {
+      const results = await tmdb.getMovieWatchProviders(id);
+      if (results && results.flatrate) {
+        // Get up to 3 streaming platforms for display
+        const platforms = results.flatrate
+          .slice(0, 3)
+          .map(provider => provider.provider_name);
+
+        // Get the deep link for streaming
+        const streamingUrl = results.link || null;
+
+        return { platforms, streamingUrl };
+      }
+    } else if (type === 'tv') {
+      const results = await tmdb.getTVWatchProviders(id);
+      if (results && results.US && results.US.flatrate) {
+        // Get up to 3 streaming platforms for display (US region)
+        const platforms = results.US.flatrate
+          .slice(0, 3)
+          .map(provider => provider.provider_name);
+
+        // Get the deep link for streaming
+        const streamingUrl = results.US.link || null;
+
+        return { platforms, streamingUrl };
+      }
+    }
+  } catch (error) {
+    console.error(`Error getting watch providers for ${type} ${id}:`, error);
+  }
+
+  // Return empty arrays if no providers found or error occurred
+  return { platforms: [], streamingUrl: null };
+}
+
 // Normalize TMDB Movie
-export function normalizeTMDBMovie(movie: any): ContentItem {
+export async function normalizeTMDBMovie(movie: any): Promise<ContentItem> {
+  // Ensure genre maps are loaded
+  if (!genresLoaded) {
+    await loadGenreMaps();
+  }
+
+  const { platforms, streamingUrl } = await getWatchProviders(movie.id, 'movie');
+
   return {
     id: movie.id.toString(),
     title: movie.title,
     type: 'movie',
     posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
     rating: movie.vote_average,
-    genres: [], // We'll need to map genre IDs to names - this would require a genre map
-    platforms: [], // TMDB doesn't provide platforms directly in this endpoint; we'd need to use watch/providers endpoint
-    streamingUrl: null, // Would need to be filled by watch/providers endpoint
+    genres: getGenreNames(movie.genre_ids || [], 'movie'),
+    platforms, // Now populated with actual streaming platforms
+    streamingUrl, // Now populated with actual streaming URL
     description: movie.overview,
     year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
   };
 }
 
 // Normalize TMDB TV Show
-export function normalizeTMDBShow(show: any): ContentItem {
+export async function normalizeTMDBShow(show: any): Promise<ContentItem> {
+  // Ensure genre maps are loaded
+  if (!genresLoaded) {
+    await loadGenreMaps();
+  }
+
+  const { platforms, streamingUrl } = await getWatchProviders(show.id, 'tv');
+
   return {
     id: show.id.toString(),
     title: show.name,
     type: 'tv',
     posterUrl: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
     rating: show.vote_average,
-    genres: [],
-    platforms: [],
-    streamingUrl: null,
+    genres: getGenreNames(show.genre_ids || [], 'tv'),
+    platforms, // Now populated with actual streaming platforms
+    streamingUrl, // Now populated with actual streaming URL
     description: show.overview,
     year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
   };
@@ -102,12 +206,12 @@ export function normalizeSpotifyTrack(track: any): ContentItem {
 // For now, we'll assume podcasts are handled similarly to music or we can extend later.
 
 // Main normalization function that dispatches based on type
-export function normalizeContent(rawData: any, type: ContentType): ContentItem {
+export async function normalizeContent(rawData: any, type: ContentType): Promise<ContentItem> {
   switch (type) {
     case 'movie':
-      return normalizeTMDBMovie(rawData);
+      return await normalizeTMDBMovie(rawData);
     case 'tv':
-      return normalizeTMDBShow(rawData);
+      return await normalizeTMDBShow(rawData);
     case 'anime':
       return normalizeJikanAnime(rawData);
     case 'music':
