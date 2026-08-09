@@ -1,3 +1,4 @@
+'use client';
 import { FavoriteInput } from './FavoriteInput';
 import { motion } from 'framer-motion';
 

@@ -27,9 +27,7 @@ export const metadata = {
       url: '/icons/icon-512x512.png'
     }
   ],
-};
-
-export const viewport = {
+  // PWA Theme Color
   themeColor: [
     {
       media: '(prefers-color-scheme: light)',
@@ -39,7 +37,7 @@ export const viewport = {
       media: '(prefers-color-scheme: dark)',
       color: '#0f172a'
     }
-  ],
+  ]
 };
 
 export default function RootLayout({
