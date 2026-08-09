@@ -287,6 +287,15 @@ export async function processAssistantMessage(
   messages: ChatMessage[],
   context: AIAssistantContext
 ): Promise<AssistantResponse> {
+  // Check if OpenAI API key is configured
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY is not set in environment variables');
+    return {
+      message: 'Sorry, I encountered an error. Please try again!',
+      toolCalls: []
+    };
+  }
+
   const userDNA = context.userDNA || await getUserDNA(context.userId);
   
   const dnaSummary = userDNA ? `
@@ -374,9 +383,25 @@ User's Entertainment DNA:
       toolCalls: []
     };
   } catch (error) {
-    console.error('Error processing assistant message:', error);
+    // Log detailed error information for debugging
+    console.error('Error processing assistant message:', {
+      error: error.message,
+      type: error.constructor.name,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+
+    // Provide more specific error messages based on error type
+    let userMessage = 'Sorry, I encountered an error. Please try again!';
+    if (error.type === 'insufficient_quota') {
+      userMessage = 'Sorry, the AI service is currently unavailable due to quota limits. Please try again later.';
+    } else if (error.type === 'invalid_request_error') {
+      userMessage = 'Sorry, there was an issue with your request. Please try rephrasing your message.';
+    } else if (error.message?.includes('api_key')) {
+      userMessage = 'Sorry, there is an issue with the AI service configuration. Please contact support.';
+    }
+
     return {
-      message: 'Sorry, I encountered an error. Please try again!',
+      message: userMessage,
       toolCalls: []
     };
   }

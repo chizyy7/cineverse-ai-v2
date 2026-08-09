@@ -78,7 +78,7 @@ export default function SignUpPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: 'https://cineversal-app.vercel.app/auth/callback' },
+        options: { redirectTo: `${process.env.NEXTAUTH_URL}/auth/callback` },
       });
       if (error) throw new Error(error.message);
     } catch (err: any) {

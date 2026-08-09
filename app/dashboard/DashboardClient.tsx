@@ -104,6 +104,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       setLoading(true);
       setError(null);
       const results: Record<string, any[]> = {};
+      let failedRows = 0;
 
       try {
         // Fetch all rows concurrently
@@ -124,13 +125,19 @@ export function DashboardClient({ user }: DashboardClientProps) {
             // Keep empty array for this row
             if (!cancelled) {
               results[row.slug] = [];
+              failedRows++;
             }
           }
         });
 
         await Promise.all(promises);
         if (!cancelled) {
-          setData(results);
+          // If all rows failed, show an error
+          if (failedRows === rows.length) {
+            setError('Failed to load dashboard content. Please check your TMDB API key and connection.');
+          } else {
+            setData(results);
+          }
           setLoading(false);
         }
       } catch (err) {
