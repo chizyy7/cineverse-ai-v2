@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
     // Check if user has premium subscription
     try {
       const { data: premiumUser } = await supabase
-        .from('users')
+        .from('user')
         .select('stripeSubscriptionId, stripeCurrentPeriodEnd')
         .eq('id', user.id)
         .single();

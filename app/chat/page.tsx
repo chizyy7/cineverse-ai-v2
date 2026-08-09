@@ -25,7 +25,7 @@ export default function ChatPage() {
         if (user) {
           // Fetch extended user data from our database
           const { data: profile } = await supabase
-            .from('users')
+            .from('user')
             .select('*')
             .eq('id', user.id)
             .single()

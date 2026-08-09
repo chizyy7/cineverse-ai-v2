@@ -20,7 +20,7 @@ export default function AuthButton() {
         if (user) {
           // Fetch extended user data from our database to get isPremium
           const { data: profile } = await supabase
-            .from('users')
+            .from('user')
             .select('isPremium')
             .eq('id', user.id)
             .single();

@@ -25,7 +25,7 @@ export default function CollectionsPage() {
         if (user) {
           // Fetch extended user data from our database
           const { data: profile } = await supabase
-            .from('users')
+            .from('user')
             .select('*')
             .eq('id', user.id)
             .single()
@@ -47,7 +47,7 @@ export default function CollectionsPage() {
       const loadCollections = async () => {
         try {
           const { data } = await supabase
-            .from('collections')
+            .from('collection')
             .select('*')
             .eq('userId', user.id)
             .order('createdAt', { ascending: false })
