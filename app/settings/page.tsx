@@ -143,7 +143,7 @@ export default function SettingsPage() {
 
       // Update user in database
       const { error } = await supabase
-        .from('user')
+        .from('User')
         .update({
           username,
           name,
@@ -173,7 +173,7 @@ export default function SettingsPage() {
     try {
       // Save notification preferences
       const { error } = await supabase
-        .from('user')
+        .from('User')
         .update({
           notificationPreferences: notifications,
         })
@@ -195,7 +195,7 @@ export default function SettingsPage() {
     try {
       // Save privacy settings
       const { error } = await supabase
-        .from('user')
+        .from('User')
         .update({
           privacySettings: privacy,
         })
@@ -258,7 +258,7 @@ export default function SettingsPage() {
           // In a real app, delete account via Supabase
           // We'll also need to delete storage files, etc.
           // For now, we'll just sign out and delete the user row
-          const { error } = await supabase.from('user').delete().eq('id', user.id);
+          const { error } = await supabase.from('User').delete().eq('id', user.id);
           if (error) throw error;
 
           success('Account deletion initiated. Redirecting to home...');

@@ -25,7 +25,7 @@ export default function CollectionsPage() {
         if (user) {
           // Fetch extended user data from our database
           const { data: profile } = await supabase
-            .from('user')
+            .from('User')
             .select('*')
             .eq('id', user.id)
             .single()

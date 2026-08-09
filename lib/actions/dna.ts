@@ -75,7 +75,7 @@ export async function saveDNA(dnaData: {
 
   // Save to the entertainment_dna table
   const { error } = await supabase
-    .from('entertainmentdna')
+    .from('EntertainmentDNA')
     .upsert({
       user_id: user.id,
       ...dnaScores,
