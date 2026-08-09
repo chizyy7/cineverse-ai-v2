@@ -185,7 +185,7 @@ export async function searchContent(query: string, type: string, limit = 5) {
       
       case 'podcast':
         const playlistResults = await spotify.searchPlaylists(query);
-        return (playlistResults.playlists?.items || []).slice(0, limit).map(item => ({
+        return playlistResults.slice(0, limit).map(item => ({
           id: item.id,
           title: item.name,
           type: 'podcast',

@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith('/login') || pathname.startsWith('/signup())) {
+  if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const url = request.nextUrl.clone();

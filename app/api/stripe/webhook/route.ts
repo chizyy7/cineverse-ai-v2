@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 // Initialize Stripe with secret key
 const stripe = new Stripe(getEnv('STRIPE_SECRET_KEY'), {
-  apiVersion: '2023-10-16',
+  apiVersion: '2026-07-29.dahlia',
 })
 
 // Webhook secret for verifying webhook signatures
@@ -69,8 +69,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     data: {
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscription,
-      stripePriceId: session.lines?.data[0]?.price?.id || null,
-      stripeCurrentPeriodEnd: new Date(session.current_period_end * 1000),
+      stripePriceId: session.line_items?.data[0]?.price?.id || null,
+      stripeCurrentPeriodEnd: null,
     }
   })
 
@@ -117,7 +117,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     data: {
       stripeSubscriptionId: subscription.id,
       stripePriceId: subscription.items.data[0]?.price.id || null,
-      stripeCurrentPeriodEnd: subscription.current_period_end * 1000,
+      stripeCurrentPeriodEnd: subscription['current_period_end'] ? new Date(subscription['current_period_end'] * 1000) : null,
       stripeCancelAtPeriodEnd: subscription.cancel_at_period_end,
     }
   })

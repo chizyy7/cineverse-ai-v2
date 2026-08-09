@@ -1,9 +1,12 @@
+'use client';
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { ArrowRightIcon } from 'lucide-react'
-import { ClipboardList, ChatBubbleLeftRight, BarChart3, BrainCog, Sparkles } from 'lucide-react'
+import { ClipboardList, MessageSquare, BarChart3, BrainCog, Sparkles } from 'lucide-react'
+
 
 export default function PricingPage() {
   return (
@@ -37,7 +40,7 @@ export default function PricingPage() {
                 <span>Watchlists (up to 3 collections)</span>
               </div>
               <div className="flex items-start space-x-3">
-                <ChatBubbleLeftRight className="h-4 w-4 text-accent-blue mt-1 flex-shrink-0" />
+                <MessageSquare className="h-4 w-4 text-accent-blue mt-1 flex-shrink-0" />
                 <span>Ratings &amp; reviews</span>
               </div>
               <div className="flex items-start space-x-3">
@@ -63,7 +66,6 @@ export default function PricingPage() {
                        bg-background/50 backdrop-blur-sm"
           >
             <CardHeader className="pb-6">
-              </div>
               <div className="flex items-baseline space-x-2 mb-4">
                 <h2 className="text-2xl font-semibold text-primary">
                   Premium
@@ -88,7 +90,7 @@ export default function PricingPage() {
                 <span>Unlimited collections</span>
               </div>
               <div className="flex items-start space-x-3">
-                <ChatBubbleLeftRight className="h-4 w-4 text-accent-blue mt-1 flex-shrink-0" />
+                <MessageSquare className="h-4 w-4 text-accent-blue mt-1 flex-shrink-0" />
                 <span>AI Chat Assistant (unlimited messages)</span>
               </div>
               <div className="flex items-start space-x-3">

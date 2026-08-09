@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -6,7 +8,7 @@ import { PremiumBadge } from '@/components/ui/PremiumBadge'
 import { getEnv } from '@/lib/env'
 import { createClientBrowser } from '@/lib/supabase-client'
 import { useEffect, useState } from 'react'
-import ChatPanel from '@/components/features/AIAssistant/ChatPanel'
+import { ChatPanel } from '@/components/features/AIAssistant/ChatPanel'
 
 export default function ChatPage() {
   const [user, setUser] = useState<any>(null)

@@ -12,6 +12,32 @@ const outfit = Outfit({ subsets: ['latin'] });
 export const metadata = {
   title: 'CineVerse AI',
   description: 'Your Entertainment, Finally Understood.',
+  // PWA Manifest
+  manifest: '/manifest.json',
+  // PWA Icons
+  icons: [
+    {
+      rel: 'icon',
+      type: 'image/png',
+      url: '/icons/icon-192x192.png'
+    },
+    {
+      rel: 'apple-touch-icon',
+      type: 'image/png',
+      url: '/icons/icon-512x512.png'
+    }
+  ],
+  // PWA Theme Color
+  themeColor: [
+    {
+      media: '(prefers-color-scheme: light)',
+      color: '#ffffff'
+    },
+    {
+      media: '(prefers-color-scheme: dark)',
+      color: '#0f172a'
+    }
+  ]
 };
 
 export default function RootLayout({

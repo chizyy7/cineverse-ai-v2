@@ -4,7 +4,7 @@ import { prisma } from './prisma'
 
 // Initialize Stripe with secret key
 const stripe = new Stripe(getEnv('STRIPE_SECRET_KEY'), {
-  apiVersion: '2023-10-16',
+  apiVersion: '2026-07-29.dahlia',
 })
 
 // Price IDs - in production, these would come from environment variables or a config service
@@ -45,7 +45,7 @@ export async function createCheckoutSession(
       cancel_url: `${getEnv('NEXT_PUBLIC_APP_URL')}/pricing?canceled=true`,
       customer_email: user.email,
       metadata: {
-        userId: user.id,
+        userId: userId,
       },
       // Optional: collect additional info
       billing_address_collection: 'required',

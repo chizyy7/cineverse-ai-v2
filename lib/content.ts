@@ -29,16 +29,18 @@ async function loadGenreMaps(): Promise<void> {
   if (genresLoaded) return;
 
   try {
-    const genresData = await tmdb.getGenres();
-    const movieGenres = genresData.genres.filter((g: any) => g.id > 0); // TMDB returns both movie and TV genres in one call
-    const tvGenres = genresData.genres.filter((g: any) => g.id > 0); // In reality, we'd need to separate them, but TMDB's genre endpoint returns both
+    // Load movie and TV genres separately
+    const [movieGenresData, tvGenresData] = await Promise.all([
+      tmdb.getGenres(),
+      tmdb.getTVGenres(),
+    ]);
 
     // Create maps for quick lookup
-    movieGenres.forEach((genre: { id: number; name: string }) => {
+    movieGenresData.genres.forEach((genre: { id: number; name: string }) => {
       movieGenreMap[genre.id] = genre.name;
     });
 
-    tvGenres.forEach((genre: { id: number; name: string }) => {
+    tvGenresData.genres.forEach((genre: { id: number; name: string }) => {
       tvGenreMap[genre.id] = genre.name;
     });
 
@@ -72,32 +74,29 @@ async function getWatchProviders(id: number, type: ContentType): Promise<{ platf
   }
 
   try {
+    let results: any;
+    let usResults: any;
+
     if (type === 'movie') {
-      const results = await tmdb.getMovieWatchProviders(id);
-      if (results && results.flatrate) {
-        // Get up to 3 streaming platforms for display
-        const platforms = results.flatrate
-          .slice(0, 3)
-          .map(provider => provider.provider_name);
-
-        // Get the deep link for streaming
-        const streamingUrl = results.link || null;
-
-        return { platforms, streamingUrl };
-      }
+      results = await tmdb.getMovieWatchProviders(id);
+      // For movies, results is already the US results
+      usResults = results;
     } else if (type === 'tv') {
-      const results = await tmdb.getTVWatchProviders(id);
-      if (results && results.US && results.US.flatrate) {
-        // Get up to 3 streaming platforms for display (US region)
-        const platforms = results.US.flatrate
-          .slice(0, 3)
-          .map(provider => provider.provider_name);
+      results = await tmdb.getTVWatchProviders(id);
+      // For TV shows, we need to get the US results specifically
+      usResults = results?.US;
+    }
 
-        // Get the deep link for streaming
-        const streamingUrl = results.US.link || null;
+    if (usResults && usResults.flatrate) {
+      // Get up to 3 streaming platforms for display
+      const platforms = usResults.flatrate
+        .slice(0, 3)
+        .map(provider => provider.provider_name);
 
-        return { platforms, streamingUrl };
-      }
+      // Get the deep link for streaming
+      const streamingUrl = usResults.link || null;
+
+      return { platforms, streamingUrl };
     }
   } catch (error) {
     console.error(`Error getting watch providers for ${type} ${id}:`, error);
@@ -218,18 +217,21 @@ export async function normalizeContent(rawData: any, type: ContentType): Promise
       // Assuming we are normalizing an artist for music type
       return normalizeSpotifyArtist(rawData);
     case 'podcast':
-      // Placeholder for podcast normalization
+      // Normalize podcast data - flexible to handle different podcast API formats
       return {
-        id: rawData.id || '',
-        title: rawData.title || rawData.name || 'Unknown Podcast',
+        id: rawData.id || rawData.trackId || '',
+        title: rawData.title || rawData.trackName || rawData.name || 'Unknown Podcast',
         type: 'podcast',
-        posterUrl: rawData.image || null,
-        rating: null,
-        genres: [],
-        platforms: [],
-        streamingUrl: rawData.url || null,
-        description: rawData.description || null,
-        year: null,
+        posterUrl: rawData.artworkUrl600 || rawData.artworkUrl100 || rawData.image || null,
+        rating: rawData.rating || rawData.trackRating || null,
+        genres: Array.isArray(rawData.genres) ? rawData.genres :
+                (typeof rawData.genres === 'string' ? [rawData.genres] : []),
+        platforms: [], // Podcast platforms would need separate integration
+        streamingUrl: rawData.trackViewUrl || rawData.url || null,
+        description: rawData.description || rawData.abstract || null,
+        year: rawData.releaseDate ?
+              new Date(rawData.releaseDate).getFullYear() :
+              (rawData.releaseYear ? parseInt(rawData.releaseYear, 10) : null),
       };
     default:
       throw new Error(`Unsupported content type: ${type}`);

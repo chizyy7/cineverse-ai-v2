@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ReviewCard, ReviewData } from '@/components/features/ReviewCard';
 import { Stars } from '@/components/ui/Stars';
 import { useToast } from '@/components/ui/Toast';
+import { FixedSizeList as List } from 'react-window';
+import { SkeletonCard, SkeletonText } from '@/components/ui/Skeleton';
 
 type SortKey = 'most-liked' | 'most-recent' | 'highest-rated' | 'lowest-rated' | 'most-helpful';
 export type { SortKey };
@@ -213,20 +215,7 @@ export function ReviewsList({
       {loading && (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-background-secondary border border-accent-blue/10 rounded-xl p-5 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-background-tertiary animate-pulse" />
-                <div className="space-y-1.5 flex-1">
-                  <div className="h-3 w-32 bg-background-tertiary rounded animate-pulse" />
-                  <div className="h-2 w-20 bg-background-tertiary rounded animate-pulse" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="h-3 w-full bg-background-tertiary rounded animate-pulse" />
-                <div className="h-3 w-5/6 bg-background-tertiary rounded animate-pulse" />
-                <div className="h-3 w-2/3 bg-background-tertiary rounded animate-pulse" />
-              </div>
-            </div>
+            <SkeletonCard key={i} className="mb-4" />
           ))}
         </div>
       )}
@@ -277,17 +266,29 @@ export function ReviewsList({
               onChanged={handleLocalChange}
             />
           )}
-          <AnimatePresence initial={false}>
-            {reviews.map((r) => (
-              <ReviewCard
-                key={r.id}
-                review={r}
-                currentUserId={currentUserId}
-                onDeleted={handleLocalDelete}
-                onChanged={handleLocalChange}
-              />
-            ))}
-          </AnimatePresence>
+          <div style={{ height: Math.max(400, reviews.length * 120) }}>
+            <List
+              height={400}
+              itemCount={reviews.length}
+              itemSize={120}
+              width="full"
+            >
+              {({ index, style }) => {
+                const r = reviews[index];
+                return (
+                  <div style={style}>
+                    <ReviewCard
+                      key={r.id}
+                      review={r}
+                      currentUserId={currentUserId}
+                      onDeleted={handleLocalDelete}
+                      onChanged={handleLocalChange}
+                    />
+                  </div>
+                );
+              }}
+            </List>
+          </div>
 
           {stats.count > pageSize && (
             <div className="text-center pt-2">

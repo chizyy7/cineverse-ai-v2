@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ContentCardProps {
   content: any; // In a real app, we'd type this properly
@@ -43,10 +44,11 @@ export const ContentCard = ({ content, isFeatured = false, onSave }: ContentCard
       {/* Poster Image */}
       <div className="relative w-full h-[calc(100%_*1.5)] max-h-[400px] rounded-xl overflow-hidden">
         {content.posterUrl ? (
-          <img 
-            src={content.posterUrl} 
-            alt={content.title} 
+          <Image
+            src={content.posterUrl}
+            alt={content.title}
             className="w-full h-full object-cover"
+            fill
           />
         ) : (
           <div className="w-full h-full bg-background-tertiary flex items-center justify-center text-accent-blue/50">

@@ -58,9 +58,13 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ items });
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET /api/watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to fetch watchlist' }, { status: 500 });
+    // Return more specific error message in development
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Failed to fetch watchlist: ${error.message}`
+      : 'Failed to fetch watchlist';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -114,9 +118,13 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ item });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to add to watchlist' }, { status: 500 });
+    // Return more specific error message in development
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Failed to add to watchlist: ${error.message}`
+      : 'Failed to add to watchlist';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -142,9 +150,13 @@ export async function DELETE(request: NextRequest) {
     await prisma.watchlistItem.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('DELETE /api/watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to remove from watchlist' }, { status: 500 });
+    // Return more specific error message in development
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Failed to remove from watchlist: ${error.message}`
+      : 'Failed to remove from watchlist';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -186,8 +198,12 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json({ item: updated });
-  } catch (error) {
+  } catch (error: any) {
     console.error('PATCH /api/watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to update watchlist item' }, { status: 500 });
+    // Return more specific error message in development
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Failed to update watchlist item: ${error.message}`
+      : 'Failed to update watchlist item';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

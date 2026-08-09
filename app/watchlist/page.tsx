@@ -98,14 +98,30 @@ export default function WatchlistPage() {
           setLoading(false);
           return;
         }
-        throw new Error('Failed to load');
+        // Try to get error message from response
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.error || `HTTP ${res.status}: ${res.statusText}`;
+        setError(`Failed to load watchlist: ${errorMessage}`);
+        setLoading(false);
+        return;
       }
-      const { items: data } = await res.json();
-      setItems(data || []);
+      const responseData = await res.json();
+      // Handle both { items: [] } and [] response formats for compatibility
+      const items = responseData.items !== undefined ? responseData.items : responseData;
+      setItems(Array.isArray(items) ? items : []);
     } catch (e: any) {
-      console.error(e);
-      setError('Failed to load watchlist');
-      toastError('Failed to load watchlist');
+      console.error('Watchlist fetch error:', e);
+      // Provide more specific error information
+      let errorMessage = 'Failed to load watchlist';
+      if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error - unable to connect to server';
+      } else if (e instanceof SyntaxError) {
+        errorMessage = 'Invalid response format from server';
+      } else if (e.message) {
+        errorMessage = `Failed to load watchlist: ${e.message}`;
+      }
+      setError(errorMessage);
+      toastError(errorMessage);
     } finally {
       setLoading(false);
     }

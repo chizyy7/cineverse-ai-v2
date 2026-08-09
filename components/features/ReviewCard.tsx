@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Stars } from '@/components/ui/Stars';
 import { useToast } from '@/components/ui/Toast';
+import Image from 'next/image';
 
 export interface ReviewUser {
   id: string;
@@ -229,7 +230,13 @@ export function ReviewCard({ review, currentUserId, onDeleted, onChanged }: Revi
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-accent-blue/20 text-accent-blue flex items-center justify-center font-outfit text-sm font-semibold flex-shrink-0 overflow-hidden">
           {review.user.avatarUrl ? (
-            <img src={review.user.avatarUrl} alt="" className="w-full h-full object-cover" />
+            <Image
+              src={review.user.avatarUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              width={40}
+              height={40}
+            />
           ) : (
             initials
           )}

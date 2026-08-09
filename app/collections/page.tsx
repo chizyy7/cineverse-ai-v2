@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -134,7 +136,6 @@ export default function CollectionsPage() {
                     </span>
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => {
                         // TODO: Implement view collection
                         alert(`View collection: ${collection.name}`)

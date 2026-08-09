@@ -1,5 +1,11 @@
 import axios from 'axios';
-import { getCache, setCache } from './cache';
+// Dummy cache functions for client-side to avoid ioredis bundling issues
+const getCache = async <T>(_key: string): Promise<T | null> => {
+  return null;
+};
+const setCache = async <T>(_key: string, _value: string | object, _ttlSeconds?: number): Promise<boolean> => {
+  return false;
+};
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -41,6 +47,17 @@ export interface TMDBMovie {
   adult: boolean;
   original_language: string;
 }
+
+// TMDB API response interface
+export interface TMDBResponse<T> {
+  page: number;
+  results: T[];
+  total_pages: number;
+  total_results: number;
+}
+
+// For endpoints that return a single object instead of a list
+export interface TMDBMovieResponse extends TMDBResponse<TMDBMovie> {}
 
 export interface TMDBShow {
   id: number;
@@ -112,6 +129,13 @@ const CACHE_KEYS = {
 
 // API Functions
 export const tmdb = {
+  // Core API method
+  get: async <T = any>(path: string, params?: Record<string, unknown>): Promise<TMDBResponse<T>> => {
+    if (!tmdbApi) return ({ page: 1, results: [], total_pages: 0, total_results: 0 } as unknown) as TMDBResponse<T>;
+    const response = await tmdbApi.get(path, params ? { params } : undefined);
+    return response.data as TMDBResponse<T>;
+  },
+
   // Movie functions
   searchMovies: async (query: string): Promise<TMDBMovie[]> => {
     const cacheKey = CACHE_KEYS.SEARCH_MOVIES(query);
@@ -358,6 +382,32 @@ export const tmdb = {
     } catch (error) {
       console.error('Error getting genres:', error);
       throw new Error('Failed to get genres');
+    }
+  },
+
+  // Get TV genres
+  getTVGenres: async (): Promise<{ genres: TMDBGenre[] }> => {
+    const cacheKey = `tmdb:genres:tv:list`;
+
+    // Try to get from cache first
+    const cached = await getCache<{ genres: TMDBGenre[] }>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+
+    try {
+      const response = await tmdbApi.get('/genre/tv/list', {
+        params: { language: 'en-US' },
+      });
+      const result = response.data;
+
+      // Cache for 24 hours (genres rarely change)
+      await setCache(cacheKey, result, 86400);
+
+      return result;
+    } catch (error) {
+      console.error('Error getting TV genres:', error);
+      throw new Error('Failed to get TV genres');
     }
   },
 

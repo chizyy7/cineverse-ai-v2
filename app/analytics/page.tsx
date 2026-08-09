@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
-import DNAChart from '@/components/features/analytics/DNAChart';
-import TasteTimeline from '@/components/features/analytics/TasteTimeline';
-import ContentTypeChart from '@/components/features/analytics/ContentTypeChart';
-import PlatformChart from '@/components/features/analytics/PlatformChart';
-import TopContent from '@/components/features/analytics/TopContent';
-import MonthlyReport from '@/components/features/analytics/MonthlyReport';
 import StatsCard from '@/components/features/analytics/StatsCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+
+// Lazy load chart components
+const DNAChart = lazy(() => import('@/components/features/analytics/DNAChart'));
+const TasteTimeline = lazy(() => import('@/components/features/analytics/TasteTimeline'));
+const ContentTypeChart = lazy(() => import('@/components/features/analytics/ContentTypeChart'));
+const PlatformChart = lazy(() => import('@/components/features/analytics/PlatformChart'));
+const TopContent = lazy(() => import('@/components/features/analytics/TopContent'));
+const MonthlyReport = lazy(() => import('@/components/features/analytics/MonthlyReport'));
 
 export type DateRange = '7d' | '30d' | '90d' | 'all';
 
@@ -184,28 +187,28 @@ export default function AnalyticsPage() {
         {/* Stats Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
-            icon="🎬"
+            icon="���🎬"
             label="Total Content"
             value={data.stats.totalContent.toString()}
             change="+23 this month"
             positive
           />
           <StatsCard
-            icon="🏆"
+            icon="���🏆"
             label="Favorite Genre"
             value={data.stats.favoriteGenre}
             change="Sci-Fi dominant"
             neutral
           />
           <StatsCard
-            icon="⏱️"
+            icon="��⏱��️"
             label="Hours Watched"
             value={`${data.stats.hoursWatched}h`}
             change="+18h this month"
             positive
           />
           <StatsCard
-            icon="✍️"
+            icon="��✍��️"
             label="Reviews Written"
             value={data.stats.reviewsWritten.toString()}
             change="+8 this month"
@@ -221,7 +224,9 @@ export default function AnalyticsPage() {
           className="mb-8"
         >
           <h2 className="text-lg font-semibold text-text-primary mb-4">Entertainment DNA</h2>
-          <DNAChart dna={data.dna} />
+          <Suspense fallback={<div className="h-[300px]"><Skeleton className="w-full" /></div>}>
+            <DNAChart dna={data.dna} />
+          </Suspense>
         </motion.div>
 
         {/* Taste Timeline - Full Width */}
@@ -232,7 +237,9 @@ export default function AnalyticsPage() {
           className="mb-8"
         >
           <h2 className="text-lg font-semibold text-text-primary mb-4">Taste Timeline</h2>
-          <TasteTimeline history={data.dnaHistory} />
+          <Suspense fallback={<div className="h-[200px]"><Skeleton className="w-full" /></div>}>
+            <TasteTimeline history={data.dnaHistory} />
+          </Suspense>
         </motion.div>
 
         {/* Two Column: Content Type + Platform Usage */}
@@ -243,7 +250,9 @@ export default function AnalyticsPage() {
             transition={{ delay: 0.3 }}
           >
             <h2 className="text-lg font-semibold text-text-primary mb-4">Content Type Breakdown</h2>
-            <ContentTypeChart data={data.contentBreakdown} />
+            <Suspense fallback={<div className="h-[200px]"><Skeleton className="w-full" /></div>}>
+              <ContentTypeChart data={data.contentBreakdown} />
+            </Suspense>
           </motion.div>
 
           <motion.div
@@ -252,7 +261,9 @@ export default function AnalyticsPage() {
             transition={{ delay: 0.4 }}
           >
             <h2 className="text-lg font-semibold text-text-primary mb-4">Platform Usage</h2>
-            <PlatformChart data={data.platformUsage} />
+            <Suspense fallback={<div className="h-[200px]"><Skeleton className="w-full" /></div>}>
+              <PlatformChart data={data.platformUsage} />
+            </Suspense>
           </motion.div>
         </div>
 
@@ -264,11 +275,13 @@ export default function AnalyticsPage() {
           className="mb-8"
         >
           <h2 className="text-lg font-semibold text-text-primary mb-4">Top Content</h2>
-          <TopContent
-            movies={data.topMovies}
-            anime={data.topAnime}
-            artists={data.topArtists}
-          />
+          <Suspense fallback={<div className="h-[300px]"><Skeleton className="w-full" /></div>}>
+            <TopContent
+              movies={data.topMovies}
+              anime={data.topAnime}
+              artists={data.topArtists}
+            />
+          </Suspense>
         </motion.div>
 
         {/* Monthly Report Card */}
@@ -279,7 +292,9 @@ export default function AnalyticsPage() {
           className="mb-8"
         >
           <h2 className="text-lg font-semibold text-text-primary mb-4">Monthly Report</h2>
-          <MonthlyReport report={data.monthlyReport} month="June 2025" />
+          <Suspense fallback={<div className="h-[100px]"><Skeleton className="w-full" /></div>}>
+            <MonthlyReport report={data.monthlyReport} month="June 2025" />
+          </Suspense>
         </motion.div>
       </div>
     </div>

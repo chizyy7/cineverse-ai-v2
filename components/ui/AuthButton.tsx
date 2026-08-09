@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClientBrowser } from '@/lib/supabase-client';
-import PremiumBadge from '@/components/ui/PremiumBadge';
+import { PremiumBadge } from '@/components/ui/PremiumBadge';
 
 export default function AuthButton() {
   const [user, setUser] = useState<any>(null);
@@ -78,7 +78,7 @@ export default function AuthButton() {
             <div className="flex items-center space-x-2">
               <p className="text-sm font-medium text-primary">{user.user_metadata?.username || user.email?.split('@')[0] || 'User'}</p>
               {user.isPremium && (
-                <PremiumBadge className="ml-1" />
+                <PremiumBadge isPremium={user.isPremium} className="ml-1" />
               )}
             </div>
           </div>

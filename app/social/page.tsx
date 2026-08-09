@@ -51,6 +51,7 @@ export default function SocialPage() {
           avatarUrl: 'https://via.placeholder.com/80',
           bio: 'Hardcore sci-fi enthusiast',
           createdAt: '2024-01-01T00:00:00Z',
+          isPremium: true,
         },
         actionType: 'rate',
         contentId: 'movie-123',
@@ -70,6 +71,7 @@ export default function SocialPage() {
           avatarUrl: 'https://via.placeholder.com/80',
           bio: 'Watching anime since 2005',
           createdAt: '2024-01-01T00:00:00Z',
+          isPremium: false,
         },
         actionType: 'review',
         contentId: 'anime-456',
@@ -88,6 +90,7 @@ export default function SocialPage() {
           avatarUrl: 'https://via.placeholder.com/80',
           bio: 'Weekly movie marathon host',
           createdAt: '2024-01-01T00:00:00Z',
+          isPremium: true,
         },
         actionType: 'watchlist_add',
         contentId: 'movie-789',
@@ -106,6 +109,7 @@ export default function SocialPage() {
           avatarUrl: 'https://via.placeholder.com/80',
           bio: 'Gaming & anime crossover',
           createdAt: '2024-01-01T00:00:00Z',
+          isPremium: false,
         },
         actionType: 'follow',
         contentId: currentUserId,
@@ -125,6 +129,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: 'Loves cyberpunk aesthetics and sci-fi',
         isFollowing: false,
+        isPremium: true,
       },
       {
         id: 'user-7',
@@ -133,6 +138,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: '100+ anime completed this year',
         isFollowing: false,
+        isPremium: false,
       },
       {
         id: 'user-8',
@@ -141,6 +147,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: 'Professional movie reviewer',
         isFollowing: false,
+        isPremium: true,
       },
       {
         id: 'user-9',
@@ -149,6 +156,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: 'Soundtrack enthusiast',
         isFollowing: false,
+        isPremium: false,
       },
       {
         id: 'user-10',
@@ -157,6 +165,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: 'True crime & tech podcasts',
         isFollowing: false,
+        isPremium: true,
       },
       {
         id: 'user-11',
@@ -165,6 +174,7 @@ export default function SocialPage() {
         avatarUrl: 'https://via.placeholder.com/80',
         bio: 'Can finish a series in one night',
         isFollowing: false,
+        isPremium: false,
       },
     ];
     setSuggestedUsers(mockUsers);

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import FollowButton from './FollowButton';
-import PremiumBadge from '@/components/ui/PremiumBadge';
+import { PremiumBadge } from '@/components/ui/PremiumBadge';
 import { FollowUser } from '@/types/social';
 
 interface UserCardProps {
