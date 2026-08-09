@@ -1,16 +1,29 @@
 import Stripe from 'stripe'
-import { getEnv } from './env'
 import { prisma } from './prisma'
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(getEnv('STRIPE_SECRET_KEY'), {
-  apiVersion: '2026-07-29.dahlia',
-})
+/**
+ * Create a Stripe instance with the secret key from environment variables.
+ * This function is called at request time to avoid reading environment variables during build.
+ */
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY is not set')
+  }
+  return new Stripe(secretKey, {
+    apiVersion: '2026-07-29.dahlia',
+  })
+}
 
-// Price IDs - in production, these would come from environment variables or a config service
-const PRICE_IDS = {
-  monthly: getEnv('STRIPE_PRICE_MONTHLY', 'price_1NLABCDEFGHIJKLMNOPQR'), // $9.99/month
-  yearly: getEnv('STRIPE_PRICE_YEARLY', 'price_2NLABCDEFGHIJKLMNOPQR'),  // $79.99/year
+/**
+ * Get the Stripe price IDs from environment variables.
+ * This function is called at request time to avoid reading environment variables during build.
+ */
+function getPriceIds(): { monthly: string; yearly: string } {
+  return {
+    monthly: process.env.STRIPE_PRICE_MONTHLY || 'price_1NLABCDEFGHIJKLMNOPQR', // $9.99/month
+    yearly: process.env.STRIPE_PRICE_YEARLY || 'price_2NLABCDEFGHIJKLMNOPQR',  // $79.99/year
+  }
 }
 
 /**
@@ -18,7 +31,7 @@ const PRICE_IDS = {
  */
 export async function createCheckoutSession(
   userId: string,
-  priceId: keyof typeof PRICE_IDS = 'monthly'
+  priceId: 'monthly' | 'yearly' = 'monthly'
 ) {
   try {
     // Get user data to attach metadata
@@ -32,17 +45,19 @@ export async function createCheckoutSession(
     }
 
     // Create checkout session
+    const stripe = getStripe()
+    const priceIds = getPriceIds()
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: PRICE_IDS[priceId],
+          price: priceIds[priceId],
           quantity: 1,
         },
       ],
       mode: 'subscription',
-      success_url: `${getEnv('NEXT_PUBLIC_APP_URL')}/pricing?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancel_url: `${getEnv('NEXT_PUBLIC_APP_URL')}/pricing?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?session_id={CHECKOUT_SESSION_ID}&success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
       customer_email: user.email,
       metadata: {
         userId: userId,
@@ -74,9 +89,10 @@ export async function createPortalSession(userId: string) {
     }
 
     // Create billing portal session
+    const stripe = getStripe()
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
-      return_url: `${getEnv('NEXT_PUBLIC_APP_URL')}/settings/subscription`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/subscription`,
     })
 
     return { url: session.url }
@@ -143,4 +159,3 @@ export async function getSubscriptionStatus(userId: string) {
   }
 }
 
-export default stripe

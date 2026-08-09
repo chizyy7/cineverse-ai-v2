@@ -1,26 +1,29 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { getEnv } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(getEnv('STRIPE_SECRET_KEY'), {
-  apiVersion: '2026-07-29.dahlia',
-})
-
-// Webhook secret for verifying webhook signatures
-const webhookSecret = getEnv('STRIPE_WEBHOOK_SECRET')
-
 export async function POST(request: Request) {
+  // Read environment variables at request time to avoid breaking build if they are missing
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+  if (!secretKey || !webhookSecret) {
+    // If Stripe is not configured, we still return a 200 to prevent Stripe from retrying,
+    // but we log the error. In a production environment, you might want to alert.
+    console.error('Stripe environment variables are not set')
+    return NextResponse.json({ received: true }, { status: 200 })
+  }
+
+  const stripe = new Stripe(secretKey, {
+    apiVersion: '2026-07-29.dahlia',
+  })
+
   const body = await request.text()
   const sig = request.headers.get('stripe-signature') as string
 
   let event: Stripe.Event
 
   try {
-    if (!webhookSecret) {
-      throw new Error('Webhook secret not configured')
-    }
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
     console.error('Webhook signature verification failed.', err)
